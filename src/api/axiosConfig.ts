@@ -2,7 +2,7 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 
 
 // Create an Axios instance with basic settings
 const axiosInstance: AxiosInstance = axios.create({
-    baseURL: 'https://cabinet.vbox.kz/api', // Replace with your API base URL
+    baseURL: 'https://example.com/api', // Replace with your API base URL
     timeout: 10000, // Set a timeout limit for requests
     headers: {
         'Content-Type': 'application/json',

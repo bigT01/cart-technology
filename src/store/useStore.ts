@@ -1,6 +1,6 @@
 import {create} from "zustand";
 import {devtools} from "zustand/middleware";
-import {ApiResponse, CheckProducts, product} from "../constants/interfaces";
+import {CheckProducts, product} from "../constants/interfaces";
 import axios from "axios";
 import axiosInstance from "../api/axiosConfig";
 
@@ -42,7 +42,7 @@ export const useStore = create<IState>()(
                     let updatedProducts: product[] = [];
                     let updatedCart = state.cart.data;
                     let updatedProductsQuantity = state.productsQuantity;
-
+                    // here need 2 different functions for increasing
                     if (context === "product") {
                         updatedProducts = state.products.data.map((product) =>
                             product.id === id ? {...product, quantity: product.quantity + 1} : product
@@ -83,7 +83,7 @@ export const useStore = create<IState>()(
                     let updatedProducts: product[] = [];
                     let updatedCart = state.cart.data;
                     let updatedProductsQuantity = state.productsQuantity;
-
+                    // here need 2 different functions for decreasing
                     if (context === "product") {
                         updatedProducts = state.products.data.map((product) =>
                             product.id === id
@@ -126,11 +126,10 @@ export const useStore = create<IState>()(
                     return state;
                 }, false, "decrement"),
             fetchProductsByCategory: async (typeId: string) => {
-                axiosInstance.get<ApiResponse<CheckProducts>>(`/check/?txn_id=1&account=1&typesId=${typeId}`)
-                    .then((response) => {
-                        //error in here just view the debugger
-                        if (response.data.data.comment === 'OK') {
-                            const fetchedProducts: product[] = response.data.data.products.map(item => ({
+                axiosInstance.get<CheckProducts>(`/check/?txn_id=1&account=1&typesId=${typeId}`)
+                    .then(response => {
+                        if (response.data.comment === 'OK') {
+                            const fetchedProducts: product[] = response.data.products.map(item => ({
                                 id: Number(item.id),
                                 image: item.image_url,
                                 category: item.type_name,
@@ -140,7 +139,11 @@ export const useStore = create<IState>()(
                                 category_id: Number(item.type_id)
                             }))
                             set((state) => {
+                                // filter below gives data which have same category id
                                 const existingCartProducts = state.cart.data.filter(product => product.category_id === Number(typeId));
+                                // in here I am gonna try if there have any products in cart.
+                                // if there have a product it will take a product from cart
+                                // if no it will take a product from own data
                                 const updatedProducts = fetchedProducts.map((product) => {
                                     const cartProduct = existingCartProducts.find(element => element.id === product.id);
                                     if (cartProduct) {
@@ -156,12 +159,22 @@ export const useStore = create<IState>()(
                                 };
                             }, false, 'fetchProductsByCategory')
                         } else {
-                            set((state) => ({products: {data: state.products.data, status: 'rejected'}}), false, 'fetchProductsByCategory')
+                            set((state) => ({
+                                products: {
+                                    data: state.products.data,
+                                    status: 'rejected'
+                                }
+                            }), false, 'fetchProductsByCategory')
                         }
                     })
                     .catch((err) => {
                         debugger
-                        set((state) => ({products: {data: state.products.data, status: 'rejected'}}), false, 'fetchProductsByCategory')
+                        set((state) => ({
+                            products: {
+                                data: state.products.data,
+                                status: 'rejected'
+                            }
+                        }), false, 'fetchProductsByCategory')
                     })
             },
         })

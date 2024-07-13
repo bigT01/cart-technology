@@ -31,8 +31,3 @@ export interface CheckProducts {
     result: number,
     txn_id: string
 }
-
-export interface ApiResponse<T> {
-    status: number;
-    data: T;
-}
